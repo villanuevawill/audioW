@@ -7,7 +7,7 @@ var gulp = require('gulp'),
 // the paths to our app files
 var paths = {
   // all our client app js files, not including 3rd party js files
-  scripts: ['src/**/*.js'],
+  scripts: ['src/main.js', 'src/buildGrid.js', 'src/playLoop.js', 'src/getSound.js', 'src/sound.js', 'src/playGrid.js'],
 };
 
 gulp.task('scripts', function(){

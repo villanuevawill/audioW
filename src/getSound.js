@@ -1,12 +1,12 @@
-var getSound = function(source, sound){
+var getSound = function(source, storage){
   var request = new XMLHttpRequest();
-
   request.open("GET", source, true);
   request.responseType = "arraybuffer";
-
+  console.log(request);
   request.onload = function() {
     var incomingData = request.response;
-    sound.sound = incomingData;
+    console.log(request.response)
+    storage.sound = incomingData;
   };
 
   request.send();

@@ -1,55 +1,62 @@
-var getSound = function(source, sound){
-  var request = new XMLHttpRequest();
+// set up grid context
+window.AudioContext = window.AudioContext||window.webkitAudioContext;
+var context = new AudioContext();
 
+
+var grid = function(rows, cols){
+  var result = [];
+  for ( var i = 0; i < rows; i++ ){
+    result.push([]);
+    for ( var j = 0; j < cols; j++ ){
+      result[i][j] = 0;
+    }
+  }
+  return result;
+};
+// too many params for an interative function
+// intsrument should have this as a method
+var playSounds = function(SoundProfile, Modules, frequency, volume, sampleRate, duration, start){
+  var attackLen = sampleRate * SoundProfile.attack();
+  var buffer = context.createBuffer(1, duration * sampleRate, sampleRate);
+  var data = buffer.getChannelData(0);
+
+  for (i = 0; i < data.length; i++){
+    if ( i < attackLen){
+      amplitude = volume * (i/(sampleRate * SoundProfile.attack()))
+    }else{
+      amplitude = volume * Math.pow((1-((i-(sampleRate*SoundProfile.attack()))/(sampleRate*(duration-SoundProfile.attack())))),SoundProfile.dampen(sampleRate, frequency, volume))
+    }
+    data[i] = amplitude * SoundProfile.wave(i, sampleRate, frequency, volume)
+  }
+
+  var osc = context.createBufferSource();
+  var gainNode = context.createGain();
+
+  // fancy word for volume
+  gainNode.gain.value = 1;
+
+  osc.buffer = buffer;
+  // turn off to call once // turn off the 's' from the function (see below)
+  osc.loop = true;
+  osc.connect(context.destination);
+
+  //play sound after start time
+  osc.noteOn(start);
+};
+var getSound = function(source, storage){
+  var request = new XMLHttpRequest();
   request.open("GET", source, true);
   request.responseType = "arraybuffer";
-
+  console.log(request);
   request.onload = function() {
     var incomingData = request.response;
-    sound.sound = incomingData;
+    console.log(request.response)
+    storage.sound = incomingData;
   };
 
   request.send();
 };
 
-if (window.hasOwnProperty('AudioContext') && !window.hasOwnProperty('webkitAudioContext')){
-  window.webkitAudioContext = AudioContext;
-}
-
-// window.onLoad = init;
-var context = new webkitAudioContext;
-
-
-// eventual params = buffer, pan, x, y, z, sendGain, mainGain, playbackRate, noteTime
-// hardcoded for now
-
-var temp = "http://www.freesound.org/people/SeryLis/sounds/181425/download/181425__serylis__guitar-chord.wav"
-//buffer is basically the sound
-var playNote = function(buffer){
-  var pan = "";
-  var x;
-  var y;
-  var z;
-  var sendGain;
-  var mainGain;
-  var playbackRate;
-  var noteTime = 0;
-
-  var sound = context.createBufferSource();
-  console.log(buffer, sound);
-  sound.buffer = buffer; 
-  sound.playbackRate.value = null // edit soon
-
-  var finalNode;
-  //handle panning
-  var dryGainNode = context.createGain();
-  // var drayGainNode.gain.value = mainGain;
-
-  finalNode = sound;
-  finalNode.connect(dryGainNode); 
-
-  sound.start(noteTime);
-};
 var Sound = function(source){
   getSound(source, this);
 };
@@ -57,3 +64,29 @@ var Sound = function(source){
 Sound.prototype.play = function(){
   playNote(this.sound);
 };
+// builds main grid ( 1st implementation)
+var mainGrid = grid( 8, 8 );
+
+// starts grid run
+// feels clunky and dumb
+var run = function(grid){
+  for ( var current = 0; current < grid[0].length; current++ ){
+    for (var key = 0; key < grid.length; key++){
+      if ( grid[key][current] ){
+        playSounds( SoundProfile, Modules, keys[key], 1, 44100, 1, current / grid[0].length );
+      }
+    }
+  }
+};
+
+// hard key assignment, lame, but quick;
+var keys = [100, 200, 300, 400, 500, 600, 700, 800];
+
+// [[0,0,0,0],
+//  [0,0,0,0],
+//  [0,0,0,0],
+//  [0,0,0,0]]
+// keysNum  = row.length
+
+// angular should be able to turn these keys on/off on click.
+// ng-repeat make toggleable buttons (change 0 to 1)

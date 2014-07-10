@@ -15,7 +15,10 @@ var playNote = function(buffer){
 
   var sound = context.createBufferSource();
   console.log(buffer, sound);
-  sound.buffer = buffer; 
+  context.decodeAudioData(buffer, function(temp){
+      // storage.sound = buffer;
+    sound.buffer = temp; 
+  })
   sound.playbackRate.value = null // edit soon
 
   var finalNode;
